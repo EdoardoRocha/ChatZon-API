@@ -1,0 +1,52 @@
+//Models
+import Conversation from "../models/Conversation.js";
+
+export default class ConversationController {
+    static async findOrCreateConversation(req, res) {
+        try {
+            const senderId = req.user.id;
+            const { recipientId } = req.body;
+
+            if (!recipientId) {
+                res.status(400).json({ message: "ID do destinatário é obrigatório!" });
+                return;
+            }
+
+            const conversation = await Conversation.findOne({
+                participants: { $all: [senderId, recipientId] }
+            }).populate("participants", "name email");
+
+            if (conversation) {
+                res.status(200).json(conversation);
+                return;
+            }
+            const newConversation = new Conversation({
+                participants: [senderId, recipientId]
+            });
+
+            const savedConversation = await newConversation.save();
+
+            const fullConversation = await Conversation.findById(savedConversation._id)
+                .populate("participants", "name email");
+
+            res.status(201).json(fullConversation);
+
+        } catch (error) {
+            console.error("Erro ao acessar/criar chat:", error);
+            res.status(500).json({ message: "Erro interno ao processar a conversa " + error.message });
+        }
+    };
+
+    static async getAllConversations(req, res) {
+        try {
+            const userId = req.user.id;
+            const conversations = await Conversation.find({
+                participants: { $in: [userId] }
+            }).populate("participants", "name email");
+            res.status(200).json(conversations);
+        } catch (error) {
+            console.error("Erro ao buscar por conversas: " + error);
+            res.status(500).json({ message: error.message });
+        }
+    };
+};
