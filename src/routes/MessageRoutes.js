@@ -5,10 +5,10 @@ const router = Router();
 import MessageController from "../controllers/MessageController.js";
 
 // Middlewares
-import { checkToken } from "../middlewares/verifyToken.js";
-import { validateNewMessage } from "../middlewares/validateMessage.js";
+import { authToken } from "../middlewares/authToken.js";
+import { validateNewMessage, validateMessages } from "../middlewares/validateMessage.js";
 
-router.post("/", checkToken, validateNewMessage, MessageController.sendMessage);
-router.get("/:id", checkToken, MessageController.getAllMessagesByConversation);
+router.post("/", authToken, validateNewMessage, MessageController.sendMessage);
+router.get("/:id", authToken, validateMessages, MessageController.getAllMessagesByConversation);
 
 export default router;

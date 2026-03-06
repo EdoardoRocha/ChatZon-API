@@ -1,9 +1,16 @@
-import 'dotenv/config';
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { authSocket } from "./src/middlewares/authSocket.js";
+import Conversation from "./src/models/Conversation.js";
 
 //Make app
 const app = express();
+
+//Create server
+const httpServer = createServer(app);
 
 //Config JSON response
 app.use(express.json());
@@ -11,17 +18,117 @@ app.use(express.json());
 //Solve CORS
 app.use(cors());
 
-// Routes
+//Socket.io Init
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
+
+//Io Injection in all routes
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+// Main Routes
 import UserRoutes from "./src/routes/UserRoutes.js";
 import MessageRoutes from "./src/routes/MessageRoutes.js";
 import ConversationRoutes from "./src/routes/ConversationRoutes.js";
 
-app.use("/api", UserRoutes);
-app.use("/api/messages", MessageRoutes);
-app.use("/api/conversations", ConversationRoutes);
+app.use("/api/v2", UserRoutes);
+app.use("/api/v2/messages", MessageRoutes);
+app.use("/api/v2/conversations", ConversationRoutes);
+
+io.use(authSocket);
+//Lógica de conexão básica (Handshake)
+io.on("connection", (socket) => {
+  console.log(
+    `Usuário autenticado: ${socket.user.name} (ID: ${socket.user.id})`,
+  );
+
+  socket.join(socket.user.id);
+  console.log(
+    `Usuário ${socket.user.name} entrou na sua sala privada: ${socket.user.id}`,
+  );
+
+  socket.on("join_chat", async (conversationId) => {
+    try {
+      const conversation = await Conversation.findById(conversationId);
+
+      if (!conversation) {
+        socket.emit("error_message", "Conversa não encontrada.");
+        return;
+      }
+
+      const isParticipant = conversation.participants.some(
+        (p) => p.toString() === socket.user.id,
+      );
+      if (!isParticipant) {
+        console.log(
+          `Tentativa de acesso não autorizada: ${socket.user.name} na sala ${conversationId}`,
+        );
+        socket.emit(
+          "error_message",
+          "Você não tem permissão para entrar nesta conversa.",
+        );
+        return;
+      }
+      await Conversation.findByIdAndUpdate(conversationId, {
+        hasUnreadMessages: false,
+      });
+
+      socket.join(conversationId);
+      socket.emit("unread_cleared", { conversationId });
+      console.log(`Usuário ${socket.user.name} entrou na sala: ${conversationId}`);
+    } catch (error) {
+      socket.emit("error_message", "Erro ao tentar entrar na conversa.");
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`Usuário desconectado`);
+  });
+
+  socket.on("typing_start", (conversationId) => {
+    socket.to(conversationId).emit("user_typing", {
+      userId: socket.user.id,
+      userName: socket.user.name,
+      isTyping: true,
+    });
+  });
+
+  socket.on("typing_stop", (conversationId) => {
+    socket.to(conversationId).emit("user_typing", {
+      userId: socket.user.id,
+      userName: socket.user.name,
+      isTyping: false,
+    });
+  });
+
+  socket.on("connected", (conversationId) => {
+    socket.to(conversationId).emit("user_status", {
+      userId: socket.user.id,
+      userName: socket.user.name,
+      isOnline: true,
+    });
+  });
+
+  socket.on("disconnected", (conversationId) => {
+    socket.to(conversationId).emit("user_status", {
+      userId: socket.user.id,
+      userName: socket.user.name,
+      isOnline: false,
+    });
+  });
+});
 
 const environment = process.env.NODE_ENV;
-const port = process.env.port;
-app.listen(port, () => {
-    console.log(`Servidor de ${environment} rodando na porta ${port}`);
+const port = process.env.port || 3000;
+
+httpServer.listen(port, () => {
+  console.log(
+    `Servidor de ${environment} rodando com WebSocket na porta ${port}`,
+  );
 });
