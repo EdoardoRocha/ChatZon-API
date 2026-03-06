@@ -1,75 +1,83 @@
-# ChatZon API - v1.0.0
+# 🚀 Documentação ChatZon API - v2.0.0
 
-O **ChatZon** é uma API de mensagens em tempo real (Backend) desenvolvida com Node.js e MongoDB. O sistema permite o cadastro de usuários, autenticação segura e a criação de conversas privadas entre participantes.
+O ChatZon é um ecossistema de mensagens em tempo real que utiliza Node.js, Express, MongoDB e Socket.io para fornecer uma experiência de chat segura e escalável.
 
-## 🚀 Tecnologias Utilizadas
+## 🔌 Socket.io (Eventos em Tempo Real)
 
-* **Node.js & Express:** Framework principal para a construção da API.
-* **MongoDB & Mongoose:** Banco de dados NoSQL e modelagem de dados.
-* **JSON Web Token (JWT):** Para autenticação e autorização de rotas.
-* **Bcryptjs:** Para criptografia de senhas.
-* **Cors:** Gerenciamento de permissões de acesso externo.
-* **Dotenv:** Gerenciamento de variáveis de ambiente.
+A comunicação via WebSocket é utilizada para notificações, status de digitação e entrega de mensagens instantâneas.
 
-## 🛡️ Segurança e Regras de Negócio
+### Autenticação e Conexão
 
-### Segurança
+Para conectar ao servidor WebSocket, é obrigatório enviar um JWT válido no cabeçalho do handshake.
 
-* **Criptografia de Senha:** As senhas dos usuários nunca são armazenadas em texto puro. É utilizado o `bcryptjs` com um `salt` de 12 caracteres para gerar hashes seguros antes da persistência no banco de dados.
-* **Autenticação JWT:** A maioria das rotas requer um token de acesso válido enviado no cabeçalho `Authorization` via Bearer Token.
-* **Middleware de Verificação:** Existe um middleware dedicado (`checkToken`) que valida a integridade e a expiração (1 dia) do token JWT antes de liberar o acesso ao controlador.
-* **Isolamento de Dados:** As consultas de usuários ocultam o campo `password` nas respostas da API para evitar vazamento de dados sensíveis.
+* **Header:** `token: <JWT_TOKEN>`
+* **Sala Privada:** Ao conectar, o usuário é automaticamente inserido em uma sala privada identificada pelo seu próprio ID (`socket.user.id`), permitindo o recebimento de notificações personalizadas.
 
-### Regras de Negócio
+### Eventos Cliente -> Servidor (Enviados pelo App)
 
-* **Conversas Privadas:** Uma conversa é baseada em participantes. O sistema verifica se já existe uma conversa entre dois usuários antes de criar uma nova para evitar duplicidade.
-* **Permissões de Mensagem:** Apenas os participantes de uma conversa específica têm permissão para ler ou enviar mensagens dentro dela. O middleware `validateNewMessage` garante que o remetente pertença ao ID da conversa fornecido.
-* **Campos Obrigatórios:** Tanto para o cadastro de usuário quanto para o envio de mensagens, existem validadores rigorosos para garantir a integridade dos dados e prevenir entradas nulas ou em formatos incorretos.
+* **`join_chat`**: Solicita a entrada em uma sala de conversa específica.
+* **Payload:** `conversationId` (String)
+* **Ações:** Valida se o usuário é participante da conversa, marca mensagens como lidas **hasUnreadMessage = false** e entra na sala do Socket.
 
----
 
-## 📡 Rotas da API
+* **`typing_start`**: Informa que o usuário começou a digitar.
+* **Payload:** `conversationId` (String)
 
-Todas as rotas são prefixadas com `/api`.
 
-### 👤 Usuários (`/api`)
+* **`typing_stop`**: Informa que o usuário parou de digitar.
+* **Payload:** `conversationId` (String)
 
-| Rota | Método | Descrição | Segurança |
-| --- | --- | --- | --- |
-| `/auth/register` | `POST` | Cria um novo usuário com nome, e-mail e senha. | Aberta |
-| `/auth/login` | `POST` | Autentica um usuário existente e retorna um JWT. | Aberta |
-| `/users` | `GET` | Lista todos os usuários cadastrados (sem as senhas). | **JWT Requerido** |
 
-### 💬 Conversas (`/api/conversations`)
+* **`connected` / `disconnected**`: Informa a mudança de status online/offline para os participantes da sala.
 
-| Rota | Método | Descrição | Segurança |
-| --- | --- | --- | --- |
-| `/` | `POST` | Encontra ou cria uma conversa entre o usuário logado e outro ID. | **JWT Requerido** |
-| `/` | `GET` | Lista todas as conversas das quais o usuário logado participa. | **JWT Requerido** |
+### Eventos Servidor -> Cliente (Recebidos pelo App)
 
-### ✉️ Mensagens (`/api/messages`)
-
-| Rota | Método | Descrição | Segurança |
-| --- | --- | --- | --- |
-| `/` | `POST` | Envia uma mensagem para uma conversa específica. | **JWT Requerido** |
-| `/:id` | `GET` | Recupera o histórico de mensagens de uma conversa (pelo ID da conversa). | **JWT Requerido** |
+* **`receive_message`**: Enviado para todos os membros de uma sala quando uma nova mensagem é postada via API.
+* **`new_notification`**: Enviado para a sala privada do destinatário caso ele não esteja com a janela do chat aberta no momento.
+* **`user_typing`**: Notifica os outros membros se alguém está digitando (contém `userId`, `userName` e `isTyping`).
+* **`error_message`**: Enviado em caso de falhas de permissão ou erros internos no Socket.
 
 ---
 
-## 🛠️ Configuração de Ambiente
+## 📡 Rotas da API (REST)
 
-Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis (conforme o `.gitignore` e os arquivos de configuração):
+Todas as rotas HTTP são prefixadas com `/api/v2`.
 
-```env
-port=3000
-MONGO_URL=sua_url_mongodb
-AUTH_SECRET=sua_chave_secreta_jwt
-NODE_ENV=development
+### 👤 Gerenciamento de Usuários (`/api/v2`)
 
-```
+| Método | Rota | Descrição | Requisitos |
+| --- | --- | --- | --- |
+| `POST` | `/auth/register` | Cria um novo usuário (nome, e-mail, senha). | Nome, E-mail único e Senha. |
+| `POST` | `/auth/login` | Autentica o usuário e retorna o token JWT. | E-mail e Senha. |
+| `GET` | `/users` | Lista todos os usuários (exceto senhas). | **JWT Requerido**. |
 
-## 🏁 Como Rodar o Projeto
+### 💬 Conversas (`/api/v2/conversations`)
 
-* **Instalação:** `npm install`
-* **Modo Produção:** `npm start`
-* **Modo Desenvolvimento (com nodemon):** `npm run dev`
+| Método | Rota | Descrição | Requisitos |
+| --- | --- | --- | --- |
+| `POST` | `/` | Encontra uma conversa existente ou cria uma nova entre dois IDs. | **JWT** + `recipientId` no corpo. |
+| `GET` | `/` | Lista todas as conversas das quais o usuário logado participa. | **JWT Requerido**. |
+
+### ✉️ Mensagens (`/api/v2/messages`)
+
+| Método | Rota | Descrição | Requisitos |
+| --- | --- | --- | --- |
+| `POST` | `/` | Envia uma mensagem. Dispara eventos `receive_message` ou `new_notification` via Socket. | **JWT** + `receiverId`, `conversationId`, `text`. |
+| `GET` | `/:id` | Recupera o histórico completo de mensagens de uma conversa (pelo ID da conversa). | **JWT** + O usuário deve ser participante. |
+
+---
+
+## 🛠️ Configuração Técnica
+
+### Variáveis de Ambiente (`.env`)
+
+Para o funcionamento correto, o backend espera as seguintes chaves:
+
+* `port`: Porta do servidor (padrão 3000).
+* `MONGO_URL`: String de conexão com o MongoDB.
+* `AUTH_SECRET`: Chave secreta para assinatura dos tokens JWT.
+
+### Scripts de Execução
+
+* **Produção:** `npm start` (Utiliza cross-env para setar NODE_ENV).
+* **Desenvolvimento:** `npm run dev` (Utiliza nodemon para hot reload).
