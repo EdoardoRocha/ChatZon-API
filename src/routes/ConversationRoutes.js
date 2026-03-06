@@ -5,9 +5,9 @@ const router = Router();
 import ConversationController from "../controllers/ConversationController.js";
 
 // Middlewares
-import { checkToken } from "../middlewares/verifyToken.js";
+import { authToken } from "../middlewares/authToken.js";
 
-router.post("/", checkToken, ConversationController.findOrCreateConversation);
-router.get("/", checkToken, ConversationController.getAllConversations);
+router.post("/", authToken, ConversationController.findOrCreateConversation);
+router.get("/", authToken, ConversationController.getAllConversations);
 
 export default router;

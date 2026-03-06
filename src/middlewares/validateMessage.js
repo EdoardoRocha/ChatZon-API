@@ -2,30 +2,60 @@
 import Conversation from "../models/Conversation.js";
 
 export const validateNewMessage = async (req, res, next) => {
-    const senderId = req.user.id;
-    const { receiverId, conversationId, text } = req.body;
+  const senderId = req.user.id;
+  const { receiverId, conversationId, text } = req.body;
 
-    //Validators
-    if (!receiverId) {
-        return res.status(400).json({ message: "O ID do destinatário é obrigatório!" });
-    };
-    if (!conversationId) {
-        return res.status(400).json({ message: "O ID da conversa é obrigatório!" });
-    };
-    if (!text) {
-        return res.status(400).json({ message: "A mensagem é obrigatória!" });
-    };
+  //Validators
+  if (!receiverId) {
+    return res
+      .status(400)
+      .json({ message: "O ID do destinatário é obrigatório!" });
+  }
+  if (!conversationId) {
+    return res.status(400).json({ message: "O ID da conversa é obrigatório!" });
+  }
+  if (!text) {
+    return res.status(400).json({ message: "A mensagem é obrigatória!" });
+  }
 
-    const conversation = await Conversation.findOne({
-        _id: conversationId,
-        participants: { $in: [senderId] }
-    })
+  const conversation = await Conversation.findOne({
+    _id: conversationId,
+    participants: { $in: [senderId] },
+  });
+
+  if (!conversation) {
+    return res.status(403).json({
+      message:
+        "Você não tem permissão para enviar mensagem nesta conversa ou ela não existe.",
+    });
+  }
+
+  next();
+};
+
+export const validateMessages = async (req, res, next) => {
+  const conversationId = req.params.id;
+  const userId = req.user.id;
+
+  try {
+    const conversation = await Conversation.findById(conversationId);
 
     if (!conversation) {
-        return res.status(403).json({
-            message: "Você não tem permissão para enviar mensagem nesta conversa ou ela não existe."
-        });
+      return res.status(404).json({ message: "Conversa não encontrada!" });
+    }
+
+    const isParticipant = conversation.participants.some(
+      (participant) => participant.toString() === userId,
+    );
+
+    if (!isParticipant) {
+      return res.status(403).json({
+        message: "Você não tem permissão para ver as mensagens desta conversa!",
+      });
     }
 
     next();
-}
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

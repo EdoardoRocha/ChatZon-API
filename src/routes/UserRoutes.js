@@ -5,11 +5,11 @@ const router = Router();
 import UserController from "../controllers/UserController.js";
 
 // Middlewares
-import { checkToken } from "../middlewares/verifyToken.js";
+import { authToken } from "../middlewares/authToken.js";
 import { validateNewUser, validateUser } from "../middlewares/validateUser.js";
 
 router.post("/auth/register", validateNewUser, UserController.register);
 router.post("/auth/login", validateUser, UserController.login);
-router.get("/users", checkToken , UserController.getAllUsers);
+router.get("/users", authToken , UserController.getAllUsers);
 
 export default router;
