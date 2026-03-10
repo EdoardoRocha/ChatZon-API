@@ -4,7 +4,8 @@ import User from "../models/User.js";
 //Dependencies 
 import bcrypt from "bcryptjs";
 import { createUserToken } from "../helpers/create-user-token.js";
-
+import { getToken } from "../helpers/get-token.js";
+import { getUserByToken } from "../helpers/get-user-by-token.js";
 
 export default class UserController {
     static async register(req, res) {
@@ -51,7 +52,7 @@ export default class UserController {
             res.status(200).json({
                 message: "Você está autenticado",
                 token: createdUser,
-                userId: user._id
+                user
             })
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -59,8 +60,12 @@ export default class UserController {
     };
 
     static async getAllUsers(req, res) {
+
+        const token = getToken(req);
+        const user = getUserByToken(token);
+
         try {
-            const users = await User.find().select("-password");
+            const users = await User.find({ _id: { $ne: user._id } }).select("-password");
             res.status(200).json({ users });
         } catch (error) {
             res.status(500).json({ message: error.message });
