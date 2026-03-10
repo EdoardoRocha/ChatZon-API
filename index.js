@@ -17,7 +17,7 @@ app.use(express.json());
 
 //Solve CORS
 if (process.env.NODE_ENV === "production") {
-  app.use(cors({ origin: "https://chat-zon.vercel.app" }));
+  app.use(cors({ origin: "https://chat-zon.vercel.app/" }));
 } else {
   app.use(cors());
 }
@@ -25,7 +25,7 @@ if (process.env.NODE_ENV === "production") {
 //Socket.io Init
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://chat-zon.vercel.app",
+    origin: "https://chat-zon.vercel.app/",
     methods: ["GET", "POST"],
   },
 });
