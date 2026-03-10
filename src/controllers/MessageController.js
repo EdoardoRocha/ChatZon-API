@@ -65,6 +65,7 @@ export default class MessageController {
   static async getAllMessagesByConversation(req, res) {
     const conversationId = req.params.id;
 
+    //Apply pagination calc
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
