@@ -16,12 +16,16 @@ const httpServer = createServer(app);
 app.use(express.json());
 
 //Solve CORS
-app.use(cors());
+if (process.env.NODE_ENV === "production") {
+  app.use(cors({ origin: "https://chat-zon.vercel.app" }));
+} else {
+  app.use(cors());
+}
 
 //Socket.io Init
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
+    origin: "https://chat-zon.vercel.app",
     methods: ["GET", "POST"],
   },
 });
@@ -81,7 +85,9 @@ io.on("connection", (socket) => {
 
       socket.join(conversationId);
       socket.emit("unread_cleared", { conversationId });
-      console.log(`Usuário ${socket.user.name} entrou na sala: ${conversationId}`);
+      console.log(
+        `Usuário ${socket.user.name} entrou na sala: ${conversationId}`,
+      );
     } catch (error) {
       socket.emit("error_message", "Erro ao tentar entrar na conversa.");
     }
