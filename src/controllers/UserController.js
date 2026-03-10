@@ -13,6 +13,7 @@ export default class UserController {
             email,
             password
         } = req.body;
+        const image = req.file;
 
         //Create password
         const salt = await bcrypt.genSalt(12);
@@ -21,7 +22,8 @@ export default class UserController {
         const user = new User({
             name,
             email,
-            password: passwordHash
+            password: passwordHash,
+            image
         })
 
         try {
