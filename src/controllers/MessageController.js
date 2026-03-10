@@ -57,7 +57,7 @@ export default class MessageController {
       // Return full Object
       return res.status(201).json(fullMessage);
     } catch (error) {
-      console.error("Não foi possível persistir a mensagem: " + error);
+      console.error("Não foi possível persistir a mensagem: " + error.message);
       res.status(500).json({ message: error.message });
     }
   }
@@ -65,14 +65,27 @@ export default class MessageController {
   static async getAllMessagesByConversation(req, res) {
     const conversationId = req.params.id;
 
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     try {
       const messages = await Messages.find({ conversationId })
         .sort({ createdAt: 1 })
+        .skip(skip)
+        .limit(limit)
         .populate("senderId", "name email");
 
-      res.status(200).json(messages);
+      const totalMessages = await Messages.countDocuments({ conversationId });
+
+      res.status(200).json({
+        messages: messages.reverse(),
+        currentPage: page,
+        totalPages: Math.ceil(totalMessages / limit),
+        totalMessages,
+      });
     } catch (error) {
-      console.error("Não foi possível carregar as mensagens: " + error);
+      console.error("Não foi possível carregar as mensagens: " + error.message);
       res.status(500).json({ message: error.message });
     }
   }
