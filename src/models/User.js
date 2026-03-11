@@ -7,16 +7,18 @@ const User = mongoose.model(
         {
             name: {
                 type: String,
-                required: true
+                required: true,
+                maxLength: [50, 'Nome de usuário muito longo (máximo 50)']
             },
             email: {
                 type: String,
                 required: true,
-                unique: true
+                unique: true,
+                maxLength: [30, 'Email muito longo (máximo 30)']
             },
             password: {
                 type: String,
-                required: true
+                required: true,
             },
             image: {
                 type: String

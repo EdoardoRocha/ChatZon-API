@@ -18,6 +18,10 @@ export const validateNewMessage = async (req, res, next) => {
     return res.status(400).json({ message: "A mensagem é obrigatória!" });
   }
 
+  if (text.length >= 500) {
+    return res.status(400).json({ message: "Texto muito longo!" })
+  }
+
   const conversation = await Conversation.findOne({
     _id: conversationId,
     participants: { $in: [senderId] },

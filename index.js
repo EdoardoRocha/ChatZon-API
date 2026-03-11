@@ -4,6 +4,9 @@ import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { authSocket } from "./src/middlewares/authSocket.js";
+import multer from "multer";
+
+//Import Models
 import Conversation from "./src/models/Conversation.js";
 
 //Make app
@@ -44,6 +47,17 @@ import ConversationRoutes from "./src/routes/ConversationRoutes.js";
 app.use("/api/v2", UserRoutes);
 app.use("/api/v2/messages", MessageRoutes);
 app.use("/api/v2/conversations", ConversationRoutes);
+
+//Middleware error on Multer Image
+app.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ message: "A Imagem deve ter no máximo 2MB!" })
+    }
+  }
+
+  res.status(500).json({ message: error.message })
+})
 
 io.use(authSocket);
 //Lógica de conexão básica (Handshake)
