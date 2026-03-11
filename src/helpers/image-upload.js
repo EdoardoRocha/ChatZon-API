@@ -4,7 +4,7 @@ import path from "path";
 
 const imageStore = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'public/images/users')
+        cb(null, './src/public/images/users')
     },
     filename: function (req, file, cb) {
         cb(null, Date.now() + String(Math.floor(Math.random() * 1000)) + path.extname(file.originalname))

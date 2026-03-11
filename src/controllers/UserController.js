@@ -14,7 +14,7 @@ export default class UserController {
             email,
             password
         } = req.body;
-        const image = req.file;
+        const image = req.file.filename;
 
         //Create password
         const salt = await bcrypt.genSalt(12);
@@ -46,7 +46,7 @@ export default class UserController {
         const email = req.body.email;
 
         try {
-            const user = await User.findOne({ email });
+            const user = await User.findOne({ email }).select("-password");
             const createdUser = await createUserToken(user);
 
             res.status(200).json({
@@ -62,8 +62,7 @@ export default class UserController {
     static async getAllUsers(req, res) {
 
         const token = getToken(req);
-        const user = getUserByToken(token);
-
+        const user = await getUserByToken(token);
         try {
             const users = await User.find({ _id: { $ne: user._id } }).select("-password");
             res.status(200).json({ users });

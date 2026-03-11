@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
-import User from "../models/User";
+import User from "../models/User.js";
 
-export const getUserByToken = (token) => {
+export const getUserByToken = async (token) => {
 
     if (!token) {
         return null;
@@ -9,7 +9,7 @@ export const getUserByToken = (token) => {
 
     const decoded = jwt.verify(token, process.env.AUTH_SECRET)
     const userId = decoded.id;
-    const user = User.findById(userId);
+    const user = await User.findById(userId).lean();
 
     return user;
 }
