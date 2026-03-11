@@ -18,6 +18,9 @@ const httpServer = createServer(app);
 //Config JSON response
 app.use(express.json());
 
+//Config fields statics
+app.use(express.static("public"))
+
 //Solve CORS
 if (process.env.NODE_ENV === "production") {
   app.use(cors({ origin: "https://chat-zon.vercel.app" }));
