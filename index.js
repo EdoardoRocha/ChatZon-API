@@ -5,6 +5,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { authSocket } from "./src/middlewares/authSocket.js";
 import multer from "multer";
+import path from "path";
 
 //Import Models
 import Conversation from "./src/models/Conversation.js";
@@ -15,11 +16,11 @@ const app = express();
 //Create server
 const httpServer = createServer(app);
 
+//Config fields statics
+app.use(express.static(path.resolve("src", "public")));
+
 //Config JSON response
 app.use(express.json());
-
-//Config fields statics
-app.use(express.static("public"))
 
 //Solve CORS
 if (process.env.NODE_ENV === "production") {
