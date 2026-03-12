@@ -75,15 +75,20 @@ export default class MessageController {
         .sort({ createdAt: 1 })
         .skip(skip)
         .limit(limit)
-        .populate("senderId", "name email");
+        .populate("senderId", "name email")
+        .populate("receiverId", "name email");
 
       const totalMessages = await Messages.countDocuments({ conversationId });
 
       res.status(200).json({
-        messages: messages.reverse(),
-        currentPage: page,
-        totalPages: Math.ceil(totalMessages / limit),
-        totalMessages,
+        data: {
+          messages: messages.reverse()
+        },
+        meta: {
+          currentPage: page,
+          totalPages: Math.ceil(totalMessages / limit),
+          totalMessages,
+        }
       });
     } catch (error) {
       console.error("Não foi possível carregar as mensagens: " + error.message);

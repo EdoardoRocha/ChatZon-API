@@ -61,11 +61,30 @@ export default class UserController {
 
     static async getAllUsers(req, res) {
 
+        //Apply pagination calc
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const totalUsers = await User.countDocuments();
+
         const token = getToken(req);
         const user = await getUserByToken(token);
         try {
-            const users = await User.find({ _id: { $ne: user._id } }).select("-password");
-            res.status(200).json({ users });
+            const users = await User.find({ _id: { $ne: user._id } })
+                .skip(skip)
+                .limit(limit)
+                .select("-password");
+            res.status(200).json({
+                data: {
+                    users
+                },
+                meta: {
+                    currentPage: page,
+                    totalPages: Math.ceil(totalUsers / limit),
+                    totalUsers
+                }
+            });
         } catch (error) {
             res.status(500).json({ message: error.message });
         }

@@ -38,12 +38,33 @@ export default class ConversationController {
     };
 
     static async getAllConversations(req, res) {
+
         try {
             const userId = req.user.id;
-            const conversations = await Conversation.find({
-                participants: { $in: [userId] }
-            }).populate("participants", "name email");
-            res.status(200).json(conversations);
+
+            const filter = { participants: { $in: [userId] } }
+
+            //Applu pagination calc
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const skip = (page - 1) * limit;
+
+            const [conversations, totalConversations] = await Promise.all([
+                Conversation.find(filter)
+                    .populate("participants", "name email")
+                    .sort({ updatedAt: -1 })
+                    .skip(skip)
+                    .limit(limit),
+                Conversation.countDocuments(filter)
+            ])
+            res.status(200).json({
+                data: conversations,
+                meta: {
+                    currentPage: page,
+                    totalPages: Math.ceil(totalConversations / limit),
+                    totalConversations
+                }
+            });
         } catch (error) {
             console.error("Erro ao buscar por conversas: " + error);
             res.status(500).json({ message: error.message });

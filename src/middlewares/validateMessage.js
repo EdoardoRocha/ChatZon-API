@@ -1,4 +1,5 @@
 //Models
+import mongoose from "mongoose";
 import Conversation from "../models/Conversation.js";
 
 export const validateNewMessage = async (req, res, next) => {
@@ -7,9 +8,7 @@ export const validateNewMessage = async (req, res, next) => {
 
   //Validators
   if (!receiverId) {
-    return res
-      .status(400)
-      .json({ message: "O ID do destinatário é obrigatório!" });
+    return res.status(400).json({ message: "O ID do destinatário é obrigatório!" });
   }
   if (!conversationId) {
     return res.status(400).json({ message: "O ID da conversa é obrigatório!" });
@@ -18,20 +17,38 @@ export const validateNewMessage = async (req, res, next) => {
     return res.status(400).json({ message: "A mensagem é obrigatória!" });
   }
 
+  const isConversationValid = mongoose.Types.ObjectId.isValid(conversationId)
+  const isReceiverValid = mongoose.Types.ObjectId.isValid(receiverId);
+
+  if (!isConversationValid || !isReceiverValid) {
+    return res.status(400).json({ message: "Informações de conversa e/ou destinatários inválidas!" })
+  }
+
   if (text.length >= 500) {
     return res.status(400).json({ message: "Texto muito longo!" })
   }
 
-  const conversation = await Conversation.findOne({
+  const conversationSender = await Conversation.findOne({
     _id: conversationId,
     participants: { $in: [senderId] },
   });
 
-  if (!conversation) {
+  if (!conversationSender) {
     return res.status(403).json({
       message:
         "Você não tem permissão para enviar mensagem nesta conversa ou ela não existe.",
     });
+  }
+
+  const conversationReceiver = await Conversation.findOne({
+    _id: conversationId,
+    participants: { $in: [receiverId] }
+  })
+
+  if (!conversationReceiver) {
+    return res.status(403).json({
+      message: "Destinatário inválido!"
+    })
   }
 
   next();
