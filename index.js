@@ -23,18 +23,35 @@ app.use(express.static(path.resolve("src", "public")));
 app.use(express.json());
 
 //Solve CORS
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://chat-zon.vercel.app',
+  'http://chat-zon.vercel.app'
+];
+
 app.use(cors({
-  origin: "*",
-  methods: "*",
-  allowedHeaders: "*"
+  origin: function (origin, callback) {
+    // Permite requisições sem origin (como mobile apps ou curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'A política de CORS para este site não permite acesso da origem especificada.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true, // Necessário para enviar tokens/cookies
+  methods: "GET,POST,PUT,DELETE,OPTIONS",
+  allowedHeaders: "Content-Type,Authorization,token" // Adicione 'token' que você usa no socket
 }));
 
 
 //Socket.io Init
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
+    credentials: true
   },
 });
 
