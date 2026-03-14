@@ -76,9 +76,8 @@ export default class MessageController {
         .skip(skip)
         .limit(limit)
         .populate("senderId", "name email")
-        .populate("receiverId", "name email");
-
-      data.reverse();
+        .populate("receiverId", "name email")
+        .sort({ createdAt: -1 });
 
       const totalMessages = await Messages.countDocuments({ conversationId });
 

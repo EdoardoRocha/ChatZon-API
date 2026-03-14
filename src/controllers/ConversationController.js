@@ -54,7 +54,8 @@ export default class ConversationController {
                     .populate("participants", "name email image")
                     .sort({ updatedAt: -1 })
                     .skip(skip)
-                    .limit(limit),
+                    .limit(limit)
+                    .sort({ createdAt: -1 }),
                 Conversation.countDocuments(filter)
             ])
             res.status(200).json({
