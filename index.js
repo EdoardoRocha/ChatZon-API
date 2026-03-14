@@ -23,15 +23,18 @@ app.use(express.static(path.resolve("src", "public")));
 app.use(express.json());
 
 //Solve CORS
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: "*",
+  allowedHeaders: "*"
+}));
 
 
 //Socket.io Init
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://chat-zon.vercel.app",
+    origin: "*",
     methods: ["GET", "POST"],
-    credentials: true
   },
 });
 
