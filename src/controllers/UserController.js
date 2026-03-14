@@ -71,14 +71,12 @@ export default class UserController {
         const token = getToken(req);
         const user = await getUserByToken(token);
         try {
-            const users = await User.find({ _id: { $ne: user._id } })
+            const data = await User.find({ _id: { $ne: user._id } })
                 .skip(skip)
                 .limit(limit)
                 .select("-password");
             res.status(200).json({
-                data: {
-                    users
-                },
+                data,
                 meta: {
                     currentPage: page,
                     totalPages: Math.ceil(totalUsers / limit),

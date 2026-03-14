@@ -71,19 +71,19 @@ export default class MessageController {
     const skip = (page - 1) * limit;
 
     try {
-      const messages = await Messages.find({ conversationId })
+      const data = await Messages.find({ conversationId })
         .sort({ createdAt: 1 })
         .skip(skip)
         .limit(limit)
         .populate("senderId", "name email")
         .populate("receiverId", "name email");
 
+      data.reverse();
+
       const totalMessages = await Messages.countDocuments({ conversationId });
 
       res.status(200).json({
-        data: {
-          messages: messages.reverse()
-        },
+        data,
         meta: {
           currentPage: page,
           totalPages: Math.ceil(totalMessages / limit),

@@ -14,7 +14,7 @@ export default class ConversationController {
 
             const conversation = await Conversation.findOne({
                 participants: { $all: [senderId, recipientId] }
-            }).populate("participants", "name email");
+            }).populate("participants", "name email image");
 
             if (conversation) {
                 res.status(200).json(conversation);
@@ -27,7 +27,7 @@ export default class ConversationController {
             const savedConversation = await newConversation.save();
 
             const fullConversation = await Conversation.findById(savedConversation._id)
-                .populate("participants", "name email");
+                .populate("participants", "name email image");
 
             res.status(201).json(fullConversation);
 
@@ -49,16 +49,16 @@ export default class ConversationController {
             const limit = parseInt(req.query.limit) || 10;
             const skip = (page - 1) * limit;
 
-            const [conversations, totalConversations] = await Promise.all([
+            const [data, totalConversations] = await Promise.all([
                 Conversation.find(filter)
-                    .populate("participants", "name email")
+                    .populate("participants", "name email image")
                     .sort({ updatedAt: -1 })
                     .skip(skip)
                     .limit(limit),
                 Conversation.countDocuments(filter)
             ])
             res.status(200).json({
-                data: conversations,
+                data,
                 meta: {
                     currentPage: page,
                     totalPages: Math.ceil(totalConversations / limit),
