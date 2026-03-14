@@ -14,7 +14,7 @@ export default class UserController {
             email,
             password
         } = req.body;
-        const image = req.file ? req.file.filename : "";
+        const image = req.file ? req.file.location : "";
 
         //Create password
         const salt = await bcrypt.genSalt(12);

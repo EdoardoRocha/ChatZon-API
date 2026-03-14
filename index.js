@@ -53,12 +53,14 @@ app.use("/api/v2/conversations", ConversationRoutes);
 app.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {
     if (error.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ message: "A Imagem deve ter no máximo 2MB!" })
+      return res.status(400).json({ message: "A Imagem deve ter no máximo 2MB!" });
     }
+    // Captura outros erros específicos do Multer/S3
+    return res.status(400).json({ message: "Erro no upload do arquivo: " + error.code });
   }
 
-  res.status(500).json({ message: error.message })
-})
+  res.status(500).json({ message: "Erro interno no servidor ou na nuvem: " + error.message });
+});
 
 io.use(authSocket);
 //Lógica de conexão básica (Handshake)
