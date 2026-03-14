@@ -72,12 +72,11 @@ export default class MessageController {
 
     try {
       const data = await Messages.find({ conversationId })
-        .sort({ createdAt: 1 })
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .populate("senderId", "name email")
-        .populate("receiverId", "name email")
-        .sort({ createdAt: -1 });
+        .populate("receiverId", "name email");
 
       const totalMessages = await Messages.countDocuments({ conversationId });
 

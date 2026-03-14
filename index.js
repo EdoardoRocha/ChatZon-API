@@ -29,8 +29,9 @@ app.use(cors());
 //Socket.io Init
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
+    origin: "https://chat-zon.vercel.app",
     methods: ["GET", "POST"],
+    credentials: true
   },
 });
 

@@ -51,11 +51,10 @@ export default class ConversationController {
 
             const [data, totalConversations] = await Promise.all([
                 Conversation.find(filter)
+                    .sort({ createdAt: -1 })
                     .populate("participants", "name email image")
-                    .sort({ updatedAt: -1 })
                     .skip(skip)
-                    .limit(limit)
-                    .sort({ createdAt: -1 }),
+                    .limit(limit),
                 Conversation.countDocuments(filter)
             ])
             res.status(200).json({
