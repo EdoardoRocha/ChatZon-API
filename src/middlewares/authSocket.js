@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
 export const authSocket = (socket, next) => {
-  const token = socket.handshake.headers.token;
+  const token = socket.handshake.auth.token;
 
   if (!token) {
     return next(new Error("Acesso negado! Token não fornecido!"));
