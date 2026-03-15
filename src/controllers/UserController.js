@@ -70,11 +70,16 @@ export default class UserController {
 
         const token = getToken(req);
         const user = await getUserByToken(token);
+        if (!user) {
+            res.status(404).json({ message: "Não há usuários cadastrados na ferramenta!" });
+            return;
+        }
         try {
             const data = await User.find({ _id: { $ne: user._id } })
                 .skip(skip)
                 .limit(limit)
                 .select("-password");
+
             res.status(200).json({
                 data,
                 meta: {
@@ -83,6 +88,7 @@ export default class UserController {
                     totalUsers
                 }
             });
+
         } catch (error) {
             res.status(500).json({ message: error.message });
         }

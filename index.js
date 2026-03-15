@@ -85,7 +85,7 @@ app.use((error, req, res, next) => {
 
 io.use(authSocket);
 //Lógica de conexão básica (Handshake)
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
   console.log(
     `Usuário autenticado: ${socket.user.name} (ID: ${socket.user.id})`,
   );
@@ -95,10 +95,12 @@ io.on("connection", (socket) => {
     `Usuário ${socket.user.name} entrou na sua sala privada: ${socket.user.id}`,
   );
 
+  const conversations = await Conversation.find({ participants: socket.user.id })
+  conversations.forEach(conv => socket.join(conv._id.toString()));
+
   socket.on("join_chat", async (conversationId) => {
     try {
       const conversation = await Conversation.findById(conversationId);
-      // conversation.forEach(conv => socket.join(conv._id.toString()));
 
       if (!conversation) {
         socket.emit("error_message", "Conversa não encontrada.");
