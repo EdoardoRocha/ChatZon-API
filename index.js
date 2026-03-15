@@ -98,6 +98,7 @@ io.on("connection", (socket) => {
   socket.on("join_chat", async (conversationId) => {
     try {
       const conversation = await Conversation.findById(conversationId);
+      conversation.forEach(conv => socket.join(conv._id.toString()));
 
       if (!conversation) {
         socket.emit("error_message", "Conversa não encontrada.");

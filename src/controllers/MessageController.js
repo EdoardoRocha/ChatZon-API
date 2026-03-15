@@ -20,11 +20,12 @@ export default class MessageController {
       });
 
       const savedMessage = await newMessage.save();
+      await Conversation.findByIdAndUpdate(conversationId, { $set: { lastMessage: text } }, { returnDocument: 'after' });
 
       const fullMessage = await Messages.findById(savedMessage._id)
         .populate("senderId", "name email")
         .populate("receiverId", "name email")
-        .populate("conversationId");
+        .populate("conversationId", );
 
       req.io.to(conversationId).emit("receive_message", fullMessage);
 

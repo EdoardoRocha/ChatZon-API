@@ -14,6 +14,9 @@ const Conversation = mongoose.model(
             hasUnreadMessages: {
                 type: Boolean,
                 default: false
+            },
+            lastMessage: {
+                type: String,
             }
         },
         {
