@@ -1,4 +1,4 @@
-# 🚀 Documentação ChatZon API - v2.6.2
+# 🚀 Documentação ChatZon API - v2.7.0
 
 O ChatZon é um ecossistema de mensagens em tempo real que utiliza Node.js, Express, MongoDB e Socket.io para fornecer uma experiência de chat segura e escalável. Esta versão inclui suporte a upload de imagens via AWS S3, paginação em todas as listagens e gerenciamento avançado de estados de leitura e presença.
 
