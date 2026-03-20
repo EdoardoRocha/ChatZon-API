@@ -93,4 +93,40 @@ export default class UserController {
             res.status(500).json({ message: error.message });
         }
     };
+
+    static async editUser(req, res) {
+        const id = req.params.id;
+        const {
+            name,
+            email,
+            password
+        } = req.body;
+        const image = req.image;
+
+        try {
+            //encrypt password
+            const salt = await bcrypt.genSalt(12);
+            const passwordHash = await bcrypt.hash(password, salt);
+
+            const payload = {
+                name,
+                email,
+                password: passwordHash,
+                image
+            };
+
+            await User.findByIdAndUpdate(
+                id,
+                { $set: payload },
+                { returnDocument: 'after' }
+            );
+            res.status(200).json({ message: "Usuário atualizado com sucesso!" });
+        } catch (error) {
+            console.error("Não foi possível atualizar esse usuário: " + error.message);
+            res.status(500).json({ message: "Não foi possível atualizar esse usuário: " + error.message })
+        }
+
+
+
+    };
 };

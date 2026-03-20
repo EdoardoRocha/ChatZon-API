@@ -4,6 +4,8 @@ import User from "../models/User.js";
 //Dependencies 
 import bcrypt from "bcryptjs";
 import fs from "fs";
+import { getToken } from "../helpers/get-token.js";
+import { getUserByToken } from "../helpers/get-user-by-token.js";
 
 export const validateNewUser = async (req, res, next) => {
     const {
@@ -97,6 +99,44 @@ export const validateUser = async (req, res, next) => {
         res.status(422).json({ message: 'Usuário ou Senha inválidos!' });
         return;
     };
+
+    next();
+};
+
+export const validateUpdateUser = async (req, res, next) => {
+    const id = req.params.id;
+
+    const token = getToken(req);
+    const user = await getUserByToken(token);
+
+    const {
+        name,
+        email,
+        password
+    } = req.body;
+
+
+    //Validators
+    if (!name) {
+        return res.status(422).json({ message: "O nome é obrigatório!" });
+    };
+    if (!email) {
+        return res.status(422).json({ message: "O email é obrigatório!" });
+    };
+    if (!password) {
+        return res.status(422).json({ message: "A Senha é obrigatória!" })
+    }
+
+    if (id !== user._id.toString()) {
+        return res.status(403).json({ message: "Você não pode alterar esse usuário!" });
+    };
+
+    const userExist = await User.findOne({ email });
+    if (user.email !== email && userExist) {
+        return res.status(409).json({ message: "Por favor, utilize outro e-mail!" });
+    };
+
+    req.image = req.file ? req.file.filename : userExist.image;
 
     next();
 }

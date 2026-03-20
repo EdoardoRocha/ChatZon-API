@@ -27,7 +27,8 @@ app.use(express.json());
 const allowedOrigins = [
   'http://localhost:5173',
   'https://chat-zon.vercel.app',
-  'http://chat-zon.vercel.app'
+  'http://chat-zon.vercel.app',
+  'https://chatzonweb.vercel.app/'
 ];
 
 app.use(cors({
