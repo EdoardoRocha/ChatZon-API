@@ -104,23 +104,33 @@ export default class UserController {
         const image = req.image;
 
         try {
-            //encrypt password
-            const salt = await bcrypt.genSalt(12);
-            const passwordHash = await bcrypt.hash(password, salt);
+            const payload = {};
 
-            const payload = {
-                name,
-                email,
-                password: passwordHash,
-                image
+            if(name) payload.name = name;
+            if(email) payload.email = email;
+            if(image) payload.image = image;
+
+            if(password) {
+                const salt = await bcrypt.genSalt(12);
+                payload.password = await bcrypt.hash(password, salt);
             };
 
-            await User.findByIdAndUpdate(
-                id,
+            const updatedUser = await User.findOneAndUpdate(
+                { _id: id },
                 { $set: payload },
-                { returnDocument: 'after' }
+                { 
+                    returnDocument: 'after',
+                    select : "-password"  
+                }
             );
-            res.status(200).json({ message: "Usuário atualizado com sucesso!" });
+
+            if(!updatedUser) {
+                res.status(404).json({message: "Não foi possível atualizar, usuário não encontrado!"})
+            }
+            res.status(200).json({ 
+                message: "Usuário atualizado com sucesso!",
+                user: updatedUser
+            });
         } catch (error) {
             console.error("Não foi possível atualizar esse usuário: " + error.message);
             res.status(500).json({ message: "Não foi possível atualizar esse usuário: " + error.message })

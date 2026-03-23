@@ -5,7 +5,6 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { authSocket } from "./src/middlewares/authSocket.js";
 import multer from "multer";
-import path from "path";
 
 //Import Models
 import Conversation from "./src/models/Conversation.js";
@@ -15,9 +14,6 @@ const app = express();
 
 //Create server
 const httpServer = createServer(app);
-
-//Config fields statics
-app.use(express.static(path.resolve("src", "public")));
 
 //Config JSON response
 app.use(express.json());
@@ -43,7 +39,7 @@ app.use(cors({
     return callback(null, true);
   },
   credentials: true, // Necessário para enviar tokens/cookies
-  methods: "GET,POST,PUT,DELETE,OPTIONS",
+  methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
   allowedHeaders: "Content-Type,Authorization,token" // Adicione 'token' que você usa no socket
 }));
 
