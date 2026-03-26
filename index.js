@@ -11,6 +11,33 @@ import Conversation from "./src/models/Conversation.js";
 
 //Make app
 const app = express();
+//Solve CORS
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://chat-zon.vercel.app",
+  "http://chat-zon.vercel.app",
+  "https://chatzonweb.vercel.app",
+  "http://chatzonweb.vercel.app",
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Permite requisições sem origin (como mobile apps ou curl)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg =
+          "A política de CORS para este site não permite acesso da origem especificada.";
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    credentials: true, // Necessário para enviar tokens/cookies
+    methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+    allowedHeaders: "Content-Type,Authorization,token", // Adicione 'token' que você usa no socket
+  }),
+);
 
 //Create server
 const httpServer = createServer(app);
@@ -18,38 +45,12 @@ const httpServer = createServer(app);
 //Config JSON response
 app.use(express.json());
 
-//Solve CORS
-
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://chat-zon.vercel.app',
-  'http://chat-zon.vercel.app',
-  'https://chatzonweb.vercel.app',
-  'http://chatzonweb.vercel.app'
-];
-
-app.use(cors({
-  origin: function (origin, callback) {
-    // Permite requisições sem origin (como mobile apps ou curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'A política de CORS para este site não permite acesso da origem especificada.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  credentials: true, // Necessário para enviar tokens/cookies
-  methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-  allowedHeaders: "Content-Type,Authorization,token" // Adicione 'token' que você usa no socket
-}));
-
-
 //Socket.io Init
 const io = new Server(httpServer, {
   cors: {
     origin: allowedOrigins,
-    methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
-    credentials: true
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
   },
 });
 
@@ -71,14 +72,22 @@ app.use("/api/v2/conversations", ConversationRoutes);
 //Middleware error on Multer Image
 app.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {
-    if (error.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ message: "A Imagem deve ter no máximo 2MB!" });
+    if (error.code === "LIMIT_FILE_SIZE") {
+      return res
+        .status(400)
+        .json({ message: "A Imagem deve ter no máximo 2MB!" });
     }
     // Captura outros erros específicos do Multer/S3
-    return res.status(400).json({ message: "Erro no upload do arquivo: " + error.code });
+    return res
+      .status(400)
+      .json({ message: "Erro no upload do arquivo: " + error.code });
   }
 
-  res.status(500).json({ message: "Erro interno no servidor ou na nuvem: " + error.message });
+  res
+    .status(500)
+    .json({
+      message: "Erro interno no servidor ou na nuvem: " + error.message,
+    });
 });
 
 io.use(authSocket);
@@ -93,8 +102,10 @@ io.on("connection", async (socket) => {
     `Usuário ${socket.user.name} entrou na sua sala privada: ${socket.user.id}`,
   );
 
-  const conversations = await Conversation.find({ participants: socket.user.id })
-  conversations.forEach(conv => socket.join(conv._id.toString()));
+  const conversations = await Conversation.find({
+    participants: socket.user.id,
+  });
+  conversations.forEach((conv) => socket.join(conv._id.toString()));
 
   socket.on("join_chat", async (conversationId) => {
     try {
