@@ -9,7 +9,7 @@ import { authToken } from "../middlewares/authToken.js";
 import { validateNewUser, validateUser, validateUpdateUser } from "../middlewares/validateUser.js";
 import { imageUpload } from "../helpers/image-upload.js";
 
-router.patch("/users/edit/:id", imageUpload.single("image"), authToken, validateUpdateUser, UserController.editUser);
+router.post("/users/edit/:id", imageUpload.single("image"), authToken, validateUpdateUser, UserController.editUser);
 router.post("/auth/register", imageUpload.single("image"), validateNewUser, UserController.register);
 router.post("/auth/login", validateUser, UserController.login);
 router.get("/users", authToken, UserController.getAllUsers);
