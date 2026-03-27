@@ -139,4 +139,27 @@ export default class UserController {
 
 
     };
+
+    static async searchUsers(req, res) {
+        let search = "";
+        if(req.query.search) {
+            search = req.query.search
+        }   
+
+        try {
+            const usersData = await User.find({
+                name: {$regex: search, $options: "i"}
+            })
+            .sort({createdAt: -1})
+            .lean()
+
+            const users = usersData;
+
+            res.status(200).json({
+                users
+            })
+        } catch (error) {
+            res.status(500).json({message: error.message})
+        }
+    };
 };
