@@ -57,7 +57,10 @@ export default class ConversationController {
                 const userIds = userFound.map(user => user._id);
 
                 filter = {
-                    participants: {$in: [...userIds, userId]}
+                    $and: [
+                        {participants: userId},
+                        {participants: {$in: userIds}}
+                    ]
                 }
             }
 
