@@ -5,6 +5,7 @@ import Conversation from "../models/Conversation.js";
 export const validateNewMessage = async (req, res, next) => {
   const senderId = req.user.id;
   const { receiverId, conversationId, text } = req.body;
+  const file = req.file;
 
   //Validators
   if (!receiverId) {
@@ -13,8 +14,8 @@ export const validateNewMessage = async (req, res, next) => {
   if (!conversationId) {
     return res.status(400).json({ message: "O ID da conversa é obrigatório!" });
   }
-  if (!text) {
-    return res.status(400).json({ message: "A mensagem é obrigatória!" });
+  if (!text && !file) {
+    return res.status(400).json({ message: "A mensagem ou o arquivo é obrigatório!" });
   }
 
   const isConversationValid = mongoose.Types.ObjectId.isValid(conversationId)

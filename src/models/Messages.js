@@ -19,9 +19,12 @@ const MessageSchema = mongoose.Schema(
         },
         text: {
             type: String,
-            required: true,
+            required: function() {return !this.fileUrl},
             maxLength: [500, 'A mensagem é muito longa']
-        }
+        },
+        fileUrl: {type: String},
+        fileType: {type: String},
+        fileName: {type: String}
     },
     {
         timestamps: true

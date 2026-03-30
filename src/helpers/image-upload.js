@@ -34,4 +34,4 @@ const imageUpload = multer({
     }
 })
 
-export { imageUpload };
+export { imageUpload, s3 };

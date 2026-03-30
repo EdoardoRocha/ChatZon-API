@@ -11,12 +11,19 @@ export default class MessageController {
     //Get the sender message
     const { receiverId, conversationId, text } = req.body;
 
+    const fileUrl = req.file ? req.file.location : null;
+    const fileType = req.file ? req.file.mimetype : null;
+    const fileName = req.file ? req.file.originalname : null;
+
     try {
       const newMessage = new Messages({
         conversationId,
         senderId,
         receiverId,
         text,
+        fileUrl,
+        fileType,
+        fileName
       });
 
       const savedMessage = await newMessage.save();

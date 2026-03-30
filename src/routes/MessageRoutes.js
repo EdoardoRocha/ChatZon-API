@@ -8,7 +8,10 @@ import MessageController from "../controllers/MessageController.js";
 import { authToken } from "../middlewares/authToken.js";
 import { validateNewMessage, validateMessages } from "../middlewares/validateMessage.js";
 
-router.post("/", authToken, validateNewMessage, MessageController.sendMessage);
+//Helpers
+import { fileUpload } from "../helpers/file-upload.js";
+
+router.post("/", authToken, fileUpload.single("file"), validateNewMessage, MessageController.sendMessage);
 router.get("/:id", authToken, validateMessages, MessageController.getAllMessagesByConversation);
 
 export default router;
