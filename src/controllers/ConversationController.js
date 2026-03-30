@@ -1,5 +1,6 @@
 //Models
 import Conversation from "../models/Conversation.js";
+import User from "../models/User.js";
 
 export default class ConversationController {
     static async findOrCreateConversation(req, res) {
@@ -39,10 +40,26 @@ export default class ConversationController {
 
     static async getAllConversations(req, res) {
 
+        let search = req.query.search || "";
+
         try {
             const userId = req.user.id;
 
-            const filter = { participants: { $in: [userId] } }
+            let filter = { 
+                participants: { $in: [userId] },
+            }
+
+            if(search !== "" ) {
+                const userFound =  await User.find({
+                    name: {$regex: search, $options: "i"}
+                }).select("_id");
+
+                const userIds = userFound.map(user => user._id);
+
+                filter = {
+                    participants: {$in: [...userIds, userId]}
+                }
+            }
 
             //Applu pagination calc
             const page = parseInt(req.query.page) || 1;

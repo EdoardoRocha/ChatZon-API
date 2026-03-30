@@ -61,6 +61,11 @@ export default class UserController {
 
     static async getAllUsers(req, res) {
 
+        let search = "";
+        if(req.query.search) {
+            search = req.query.search
+        };
+
         //Apply pagination calc
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -75,10 +80,15 @@ export default class UserController {
             return;
         }
         try {
-            const data = await User.find({ _id: { $ne: user._id } })
+            const data = await User.find({ 
+                _id: { $ne: user._id }, 
+                name: {$regex: search, $options: "i"}
+            })
+                .sort({createdAt: -1})
                 .skip(skip)
                 .limit(limit)
-                .select("-password");
+                .select("-password")
+                .lean();
 
             res.status(200).json({
                 data,
@@ -138,28 +148,5 @@ export default class UserController {
 
 
 
-    };
-
-    static async searchUsers(req, res) {
-        let search = "";
-        if(req.query.search) {
-            search = req.query.search
-        }   
-
-        try {
-            const usersData = await User.find({
-                name: {$regex: search, $options: "i"}
-            })
-            .sort({createdAt: -1})
-            .lean()
-
-            const users = usersData;
-
-            res.status(200).json({
-                users
-            })
-        } catch (error) {
-            res.status(500).json({message: error.message})
-        }
     };
 };
