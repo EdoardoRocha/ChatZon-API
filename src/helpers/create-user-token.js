@@ -6,7 +6,7 @@ export const createUserToken = async user => {
         name: user.name,
         id: user._id
     }, process.env.AUTH_SECRET, {
-        expiresIn: "1d"
+        expiresIn: "7d"
     });
 
     //Return token
