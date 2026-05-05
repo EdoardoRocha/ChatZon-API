@@ -8,9 +8,9 @@ import { getToken } from "../helpers/get-token.js";
 import { getUserByToken } from "../helpers/get-user-by-token.js";
 
 export const validateNewUser = async (req, res, next) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, access_key } = req.body;
 
-  //Basci validator
+  //Basic validator
   if (!name) {
     res.status(400).json({ message: "O nome é obrigatório!" });
     return;
@@ -33,6 +33,18 @@ export const validateNewUser = async (req, res, next) => {
 
   if (!password) {
     res.status(400).json({ message: "A senha é obrigatória!" });
+    return;
+  }
+
+
+  if (!access_key) {
+    res.status(400).json({ message: "A Chave de acesso é obrigatória!" });
+    return;
+  }
+
+  //Check if access key is valid
+  if (access_key !== process.env.ACCESS_KEY) {
+    res.status(401).json({ message: "Chave de acesso inválida!" });
     return;
   }
 
