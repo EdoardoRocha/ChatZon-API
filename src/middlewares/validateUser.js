@@ -37,16 +37,16 @@ export const validateNewUser = async (req, res, next) => {
   }
 
 
-  if (!access_key) {
-    res.status(400).json({ message: "A Chave de acesso é obrigatória!" });
-    return;
-  }
+  // if (!access_key) {
+  //   res.status(400).json({ message: "A Chave de acesso é obrigatória!" });
+  //   return;
+  // }
 
   //Check if access key is valid
-  if (access_key !== process.env.ACCESS_KEY) {
-    res.status(401).json({ message: "Chave de acesso inválida!" });
-    return;
-  }
+  // if (access_key !== process.env.ACCESS_KEY) {
+  //   res.status(401).json({ message: "Chave de acesso inválida!" });
+  //   return;
+  // }
 
   //Check if password type is string
 
