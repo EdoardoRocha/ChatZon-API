@@ -26,7 +26,7 @@ export const validateNewUser = async (req, res, next) => {
     return;
   }
 
-  if (email.length >= 30) {
+  if (email.length >= 70) {
     res.status(400).json({ message: "O E-mail é muito longo!" });
     return;
   }

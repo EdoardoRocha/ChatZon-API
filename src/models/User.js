@@ -14,7 +14,7 @@ const User = mongoose.model(
                 type: String,
                 required: true,
                 unique: true,
-                maxLength: [30, 'Email muito longo (máximo 30)']
+                maxLength: [70, 'Email muito longo (máximo 70)']
             },
             password: {
                 type: String,
